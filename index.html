@@ -38,32 +38,151 @@
   <a href="main/award/badges.html">
     <img src="public/reward.png" title="awards" alt="Reward Icon" class="reward-icon" id="reward-icon">
   </a>
-  <div class="homepage">
- <!-- Chatbot Section -->
-<div id="chatbot-container">
-  <input type="text" id="user-input" placeholder="Type your message..." />
-  <button onclick="sendMessage()">Send</button>
-  <p id="chatbot-response"></p>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup Popup</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+      }
+      /* Modal styles */
+      .modal {
+          display: block; /* Always show when page loads */
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+      .modal-content {
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          width: 350px;
+          text-align: center;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .close-btn {
+          float: right;
+          cursor: pointer;
+          font-size: 20px;
+          font-weight: bold;
+      }
+      .hidden {
+          display: none;
+      }
+      input {
+          width: 100%;
+          padding: 8px;
+          margin: 10px 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+      }
+      button {
+          width: 100%;
+          padding: 10px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      button:hover {
+          background-color: #0056b3;
+      }
+      .switch {
+          margin-top: 10px;
+          color: #007bff;
+          cursor: pointer;
+      }
+  </style>
+  <script type="module" src="firebase.js"></script>
+</head>
+<body>
+
+<!-- Login & Signup Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input type="email" placeholder="Email" id="loginEmail">
+            <input type="password" placeholder="Password" id="loginPass">
+            <button id="loginBtn">Login</button>
+            <p class="switch" id="switchToSignup">Don't have an account? <span>Sign up</span></p>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="hidden">
+            <h2>Sign Up</h2>
+            <input type="text" placeholder="Username" id="signupUser">
+            <input type="email" placeholder="Email" id="signupEmail">
+            <input type="password" placeholder="Password" id="signupPass">
+            <button id="signupBtn">Sign Up</button>
+            <p class="switch" id="switchToLogin">Already have an account? <span>Login</span></p>
+        </div>
+    </div>
 </div>
 
-<script>
-  function sendMessage() {
-      let userInput = document.getElementById("user-input").value;
+<script type="module">
+  import { signupUser, loginUser } from "./firebase.js";
 
-      fetch("http://127.0.0.1:5000/chat", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ query: userInput })
-      })
-      .then(response => response.json())
-      .then(data => {
-          document.getElementById("chatbot-response").innerText = data.response;
-      })
-      .catch(error => console.error("Error:", error));
+  document.addEventListener("DOMContentLoaded", () => {
+      // Ensure the modal shows on page load
+      document.getElementById("loginModal").style.display = "flex";
+
+      // Signup Button Click Event
+      document.getElementById("signupBtn").addEventListener("click", () => {
+          const username = document.getElementById("signupUser").value;
+          const email = document.getElementById("signupEmail").value;
+          const password = document.getElementById("signupPass").value;
+          signupUser(username, email, password);
+      });
+
+      // Login Button Click Event
+      document.getElementById("loginBtn").addEventListener("click", () => {
+          const email = document.getElementById("loginEmail").value;
+          const password = document.getElementById("loginPass").value;
+          loginUser(email, password);
+      });
+
+      // **Fix for Close Button**
+      document.getElementById("closeModal").addEventListener("click", closeModal);
+
+      // **Switching Between Login & Signup**
+      document.getElementById("switchToSignup").addEventListener("click", showSignup);
+      document.getElementById("switchToLogin").addEventListener("click", showLogin);
+  });
+
+  function closeModal() {
+      document.getElementById("loginModal").style.display = "none";
+  }
+
+  function showSignup() {
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("signupForm").classList.remove("hidden");
+  }
+
+  function showLogin() {
+      document.getElementById("signupForm").classList.add("hidden");
+      document.getElementById("loginForm").classList.remove("hidden");
   }
 </script>
+
+</body>
+</html>
 
 <div class="homepage">
   <section class="homepage-inner">
@@ -208,6 +327,61 @@
         requestAnimationFrame(smoothScrollToTop);
       });
     </script>
+  <div class="homepage">
+    <div id="chatbot-card">
+      <h2>🤖 Cyber Panda Chatbot</h2>
+      <div id="chat-history"></div>
+      <div class="input-area">
+        <input type="text" id="user-input" placeholder="Ask me anything about cyber attacks..." />
+        <button onclick="sendMessage()">🚀</button>
+      </div>
+    </div>
+    
+    <script>
+      async function sendMessage() {
+          const userInput = document.getElementById("user-input").value.trim();
+          if (userInput === "") return;
+    
+          appendMessage(userInput, 'user');
+          document.getElementById("user-input").value = "";
+    
+          try {
+              const response = await fetch("http://127.0.0.1:5000/chat", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ query: userInput })
+              });
+    
+              const data = await response.json();
+              appendMessage(data.response, 'bot');
+          } catch (error) {
+              appendMessage("Oops! Something went wrong.", 'bot');
+          }
+      }
+    
+      function appendMessage(message, sender) {
+          const chatHistory = document.getElementById("chat-history");
+          const bubble = document.createElement("div");
+          bubble.className = `chat-bubble ${sender}`;
+          bubble.textContent = message;
+          chatHistory.appendChild(bubble);
+          chatHistory.scrollTop = chatHistory.scrollHeight;
+      }
+    </script>
+     <!-- Google Translate Element -->
+<div id="google_translate_element" style="margin: 20px;"></div>
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'af,ar,hy,az,ba,eu,bn,bs,ca,hr,cs,da,nl,en,eo,et,tl,tlh,fi,fr,gaa,ka,de,el,gu,ht,ha,he,hi,hu,is,id,it,ja,jw,kn,kk,km,ko,ku,ky,la,lv,lt,lb,mk,ml,mn,no,ne,pl,pt,pa,ro,ru,sr,si,sk,sl,es,su,sw,sv,ta,te,th,tl,tr,uk,ur,vi,cy,xh,yi,zu',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+    }
+</script>
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </div>
 </body>
 </html>
